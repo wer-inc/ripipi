@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
+
+:root {
+  --background: #ffffff;
+  --foreground: #111111;
+  --accent: #10b981;
+  --muted: #666666;
+  --alt-bg: #f6f7f8;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: 'Noto Sans JP', system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+}
