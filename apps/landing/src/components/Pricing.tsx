@@ -48,49 +48,94 @@ function PricingContent() {
   }
 
   return (
-    <section className="py-16 px-4">
+    <section className="py-20 px-4 bg-gray-50">
       <div className="max-w-6xl mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-12">
-          料金プラン
-        </h2>
-        <div className="grid md:grid-cols-3 gap-8 mb-8">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            シンプルな料金体系
+          </h2>
+          <p className="text-lg text-gray-600">
+            必要な機能に応じて、3つのプランからお選びいただけます
+          </p>
+        </div>
+        <div className="grid md:grid-cols-3 gap-6 lg:gap-8 mb-12">
           {plans.map((plan, index) => (
             <div
               key={index}
-              className={`bg-white p-8 rounded-xl shadow-sm border-2 transition-all ${
+              className={`relative bg-white p-8 rounded-2xl transition-all duration-300 ${
                 plan.recommended 
-                  ? "border-emerald-500 shadow-lg scale-105" 
-                  : "border-gray-200 hover:border-gray-300"
+                  ? "shadow-2xl scale-105 border-2 border-emerald-500" 
+                  : "shadow-sm hover:shadow-lg border border-gray-200"
               }`}
             >
               {plan.recommended && (
-                <p className="text-emerald-600 font-medium text-sm mb-2">
-                  人気No.1
-                </p>
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                  <span className="bg-emerald-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
+                    おすすめ
+                  </span>
+                </div>
               )}
-              <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-              <p className="text-4xl font-bold mb-6">
-                ¥{plan.price}
-                <span className="text-base font-normal text-gray-600">/月</span>
-              </p>
-              <ul className="space-y-3">
+              <div className="text-center mb-6">
+                <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
+                <div className="flex items-baseline justify-center">
+                  <span className="text-5xl font-bold text-gray-900">¥{plan.price}</span>
+                  <span className="text-gray-600 ml-2">/月</span>
+                </div>
+              </div>
+              <ul className="space-y-4 mb-8">
                 {plan.features.map((feature, idx) => (
-                  <li key={idx} className="text-gray-700 flex items-start">
-                    <span className="text-emerald-500 mr-2 mt-0.5">✓</span>
-                    <span className="text-sm">{feature}</span>
+                  <li key={idx} className="flex items-start">
+                    <svg className="w-5 h-5 text-emerald-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-gray-700">{feature}</span>
                   </li>
                 ))}
               </ul>
+              <a
+                href="#demo"
+                className={`block text-center py-3 px-6 rounded-xl font-medium transition-all ${
+                  plan.recommended
+                    ? "bg-emerald-500 text-white hover:bg-emerald-600"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                このプランで始める
+              </a>
             </div>
           ))}
         </div>
-        <div className="text-center text-gray-600">
-          <p className="mb-2">
-            ※ 初期費用 50,000〜200,000円（設定代行/教育/素材整備）
-          </p>
-          <p className="text-sm">
-            ※ 多店舗割引、年間契約割引あり
-          </p>
+        <div className="bg-white rounded-2xl p-8 shadow-sm">
+          <div className="grid md:grid-cols-2 gap-8">
+            <div>
+              <h4 className="font-bold text-lg mb-3">初期費用について</h4>
+              <p className="text-gray-600 mb-2">
+                50,000〜200,000円（店舗規模により変動）
+              </p>
+              <ul className="space-y-1 text-sm text-gray-600">
+                <li>• 初期設定の完全代行</li>
+                <li>• スタッフ向け研修実施</li>
+                <li>• 販促物（QRコード等）作成</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold text-lg mb-3">お得な割引制度</h4>
+              <ul className="space-y-2 text-gray-600">
+                <li className="flex items-center">
+                  <span className="text-emerald-500 mr-2">▼10%</span>
+                  年間契約割引
+                </li>
+                <li className="flex items-center">
+                  <span className="text-emerald-500 mr-2">▼15%</span>
+                  3店舗以上の多店舗割引
+                </li>
+                <li className="flex items-center">
+                  <span className="text-emerald-500 mr-2">▼20%</span>
+                  パートナー紹介割引
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     </section>

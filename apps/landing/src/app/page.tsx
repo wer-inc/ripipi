@@ -8,6 +8,7 @@ import Pricing from '@/components/Pricing';
 import FAQ from '@/components/FAQ';
 import DemoForm from '@/components/DemoForm';
 import FixedHeader from '@/components/FixedHeader';
+import Footer from '@/components/Footer';
 
 export default function Home() {
   return (
@@ -24,6 +25,7 @@ export default function Home() {
         <FAQ />
         <DemoForm />
       </main>
+      <Footer />
     </>
   );
 }
