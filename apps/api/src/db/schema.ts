@@ -13,11 +13,20 @@ export const members = pgTable("members", {
   displayName: text("display_name"),
 });
 
+export const staff = pgTable("staff", {
+  staffId: uuid("staff_id").defaultRandom().primaryKey(),
+  storeId: uuid("store_id").references(() => stores.storeId).notNull(),
+  name: text("name").notNull(),
+  role: text("role").notNull().default("stylist"),
+  isActive: integer("is_active").notNull().default(1),
+});
+
 export const menus = pgTable("menus", {
   menuId: uuid("menu_id").defaultRandom().primaryKey(),
   storeId: uuid("store_id").references(() => stores.storeId).notNull(),
   name: text("name").notNull(),
   durationMin: integer("duration_min").notNull(),
+  price: integer("price").notNull().default(0),
 });
 
 export const reservations = pgTable("reservations", {

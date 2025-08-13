@@ -1,13 +1,108 @@
-version: "3.9"
 services:
+  # PostgreSQL Database
   db:
     image: postgres:16
     environment:
       POSTGRES_PASSWORD: devpass
       POSTGRES_USER: devuser
       POSTGRES_DB: liffapp
-    ports: ["5432:5432"]
-    volumes: [dbdata:/var/lib/postgresql/data]
-    healthcheck: {test: ["CMD-SHELL","pg_isready -U devuser"], interval: 5s, timeout: 5s, retries: 10}
+    ports:
+      - "5432:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U devuser -d liffapp"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - ripipi-network
+
+  # API Server
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile.dev
+    ports:
+      - "8787:8787"
+    environment:
+      DATABASE_URL: postgresql://devuser:devpass@db:5432/liffapp
+      APP_JWT_SECRET: your-jwt-secret-here
+      LINE_CHANNEL_ID: ${LINE_CHANNEL_ID:-2007919613}
+      LINE_CHANNEL_ACCESS_TOKEN: ${LINE_CHANNEL_ACCESS_TOKEN:-}
+      LINE_CHANNEL_SECRET: ${LINE_CHANNEL_SECRET:-}
+      STORE_ID: 27ce78c0-5bc1-402c-b667-dc7b2985e0b9
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./apps/api:/app/apps/api
+      - ./packages:/app/packages
+      - /app/node_modules
+      - /app/apps/api/node_modules
+    networks:
+      - ripipi-network
+
+  # Admin Dashboard
+  admin-web:
+    build:
+      context: .
+      dockerfile: apps/admin-web/Dockerfile.dev
+    ports:
+      - "5174:5174"
+    environment:
+      VITE_API_URL: http://localhost:8787
+      VITE_STORE_ID: 27ce78c0-5bc1-402c-b667-dc7b2985e0b9
+      VITE_LIFF_ID: 2007919613-YrjmyLL9
+    volumes:
+      - ./apps/admin-web:/app/apps/admin-web
+      - ./packages:/app/packages
+      - /app/node_modules
+      - /app/apps/admin-web/node_modules
+    networks:
+      - ripipi-network
+
+  # Landing Page
+  landing:
+    build:
+      context: .
+      dockerfile: apps/landing/Dockerfile.dev
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8787
+      NEXT_PUBLIC_LIFF_ID: 2007919613-YrjmyLL9
+    volumes:
+      - ./apps/landing:/app/apps/landing
+      - ./packages:/app/packages
+      - /app/node_modules
+      - /app/apps/landing/node_modules
+      - /app/apps/landing/.next
+    networks:
+      - ripipi-network
+
+  # LIFF Demo App
+  liff-demo:
+    build:
+      context: .
+      dockerfile: apps/liff-demo/Dockerfile.dev
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:8787
+      VITE_LIFF_ID: 2007919613-YrjmyLL9
+      VITE_STORE_ID: 27ce78c0-5bc1-402c-b667-dc7b2985e0b9
+    volumes:
+      - ./apps/liff-demo:/app/apps/liff-demo
+      - ./packages:/app/packages
+      - /app/node_modules
+      - /app/apps/liff-demo/node_modules
+    networks:
+      - ripipi-network
+
 volumes:
   dbdata:
+
+networks:
+  ripipi-network:
+    driver: bridge

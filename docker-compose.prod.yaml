@@ -1,0 +1,102 @@
+version: "3.9"
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - ripipi-network
+    restart: unless-stopped
+
+  # API Server
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      APP_JWT_SECRET: ${APP_JWT_SECRET}
+      LINE_CHANNEL_ID: ${LINE_CHANNEL_ID}
+      LINE_CHANNEL_ACCESS_TOKEN: ${LINE_CHANNEL_ACCESS_TOKEN}
+      LINE_CHANNEL_SECRET: ${LINE_CHANNEL_SECRET}
+      NODE_ENV: production
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - ripipi-network
+    restart: unless-stopped
+
+  # Admin Dashboard
+  admin-web:
+    build:
+      context: .
+      dockerfile: apps/admin-web/Dockerfile
+      args:
+        VITE_API_URL: ${API_URL}
+        VITE_STORE_ID: ${STORE_ID}
+        VITE_LIFF_ID: ${LIFF_ID}
+    networks:
+      - ripipi-network
+    restart: unless-stopped
+
+  # Landing Page
+  landing:
+    build:
+      context: .
+      dockerfile: apps/landing/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${API_URL}
+        NEXT_PUBLIC_LIFF_ID: ${LIFF_ID}
+    networks:
+      - ripipi-network
+    restart: unless-stopped
+
+  # LIFF Demo App
+  liff-demo:
+    build:
+      context: .
+      dockerfile: apps/liff-demo/Dockerfile
+      args:
+        VITE_API_URL: ${API_URL}
+        VITE_LIFF_ID: ${LIFF_ID}
+        VITE_STORE_ID: ${STORE_ID}
+    networks:
+      - ripipi-network
+    restart: unless-stopped
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - api
+      - admin-web
+      - landing
+      - liff-demo
+    networks:
+      - ripipi-network
+    restart: unless-stopped
+
+volumes:
+  dbdata:
+
+networks:
+  ripipi-network:
+    driver: bridge

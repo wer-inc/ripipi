@@ -1,69 +1,40 @@
-# React + TypeScript + Vite
+# Ripipi 管理画面
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## 概要
+Ripipi予約システムの店舗管理者向けダッシュボードです。
 
-Currently, two official plugins are available:
+## 機能
+- **ダッシュボード**: 本日の予約数、売上、顧客統計を一覧表示
+- **本日の予約**: 当日の予約一覧と来店処理（ステータス更新）
+- **予約一覧**: 日付範囲を指定して予約を検索・閲覧
+- **メニュー設定**: サービスメニューの追加・編集・削除
+- **顧客管理**: 顧客情報の閲覧と検索
+- **設定**: 店舗設定、通知設定、予約ルールの管理
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 起動方法
+```bash
+# 開発サーバーの起動（ポート5174）
+pnpm dev
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# または、ルートディレクトリから
+pnpm dev:admin
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## 環境変数
+`.env`ファイルに以下の設定が必要です：
 ```
+VITE_API_URL=http://localhost:8787
+VITE_STORE_ID=27ce78c0-5bc1-402c-b667-dc7b2985e0b9
+VITE_LIFF_ID=2007919613-YrjmyLL9
+```
+
+## アクセス
+http://localhost:5174/
+
+## 技術スタック
+- React + TypeScript
+- Vite
+- React Router
+- Tailwind CSS
+- Lucide Icons
+- ky (HTTP client)

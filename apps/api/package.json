@@ -7,12 +7,14 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
+    "seed": "tsx src/seed.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@fastify/cors": "^11.1.0",
     "drizzle-orm": "^0.44.4",
     "fastify": "^5.5.0",
     "jose": "^6.0.12",
@@ -25,8 +27,10 @@
   "devDependencies": {
     "@types/node": "^24.2.1",
     "@types/node-cron": "^3.0.11",
+    "dotenv": "^17.2.1",
     "drizzle-kit": "^0.31.4",
     "tsx": "^4.20.3",
     "typescript": "^5.9.2"
-  }
+  },
+  "type": "commonjs"
 }

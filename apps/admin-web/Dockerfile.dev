@@ -1,0 +1,21 @@
+FROM node:20-alpine
+WORKDIR /app
+RUN corepack enable
+
+# Copy workspace files
+COPY pnpm-workspace.yaml ./
+COPY pnpm-lock.yaml ./
+
+# Copy package files
+COPY package.json ./
+COPY apps/admin-web/package.json ./apps/admin-web/
+
+# Install dependencies
+RUN pnpm install --no-frozen-lockfile
+
+# Copy app source
+COPY . .
+
+WORKDIR /app/apps/admin-web
+EXPOSE 5174
+CMD ["pnpm", "dev", "--host", "0.0.0.0", "--port", "5174"]

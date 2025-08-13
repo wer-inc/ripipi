@@ -2,6 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import { QRCodeSVG } from "qrcode.react";
 
 function HeroContent() {
   const searchParams = useSearchParams();
@@ -92,13 +93,13 @@ function HeroContent() {
           <div className="relative group">
             <div className="absolute inset-0 bg-emerald-400/20 rounded-2xl blur-xl group-hover:bg-emerald-400/30 transition-all" />
             <div className="relative p-6 bg-white rounded-2xl shadow-xl border border-gray-100">
-              <div className="w-36 h-36 bg-gray-100 rounded-xl flex items-center justify-center relative overflow-hidden">
-                <svg className="w-32 h-32 text-gray-300" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect width="200" height="200" fill="white"/>
-                  <path d="M40 40h30v30H40zM130 40h30v30h-30zM40 130h30v30H40z" fill="currentColor"/>
-                  <path d="M80 40h10v10H80zM100 40h10v10h-10zM40 80h10v10H40zM60 80h10v10H60zM80 80h10v10H80zM100 80h10v10h-10zM120 80h10v10h-10zM140 80h10v10h-10zM40 100h10v10H40zM80 100h10v10H80zM120 100h10v10h-10zM160 100h10v10h-10zM80 120h10v10H80zM100 120h10v10h-10zM120 120h10v10h-10zM140 120h10v10h-10zM80 140h10v10H80zM100 140h10v10h-10zM120 140h10v10h-10zM140 140h10v10h-10zM160 140h10v10h-10z" fill="currentColor"/>
-                </svg>
-                <span className="absolute bottom-2 text-xs text-gray-400">デモQR</span>
+              <div className="w-36 h-36 bg-white rounded-xl flex items-center justify-center relative overflow-hidden p-2">
+                <QRCodeSVG 
+                  value="https://liff.line.me/2007919613-YrjmyLL9" 
+                  size={120}
+                  level="M"
+                  includeMargin={false}
+                />
               </div>
             </div>
           </div>

@@ -54,60 +54,103 @@ docs/IMPLEMENTATION.mdの仕様に基づいて実装されています。
 
 ## セットアップ手順
 
-### 1. 依存関係のインストール
+### Docker環境（推奨）
+
+#### 1. 環境変数の設定
+
+```bash
+cp .env.example .env
+# .envファイルを編集して、必要な環境変数を設定
+```
+
+#### 2. 開発環境の起動
+
+```bash
+# すべてのサービスを起動
+make dev
+
+# または個別に操作
+docker-compose up -d
+
+# ログを確認
+make logs
+
+# サービスの状態を確認
+make ps
+```
+
+#### 3. データベースのセットアップ
+
+```bash
+# マイグレーション実行
+make db-migrate
+
+# テストデータ投入
+make db-seed
+```
+
+#### 4. アクセスURL
+
+- ランディングページ: http://localhost:3000
+- APIサーバー: http://localhost:8787
+- 管理画面: http://localhost:5174
+- LIFFデモ: http://localhost:5173
+
+### ローカル環境（Dockerを使わない場合）
+
+#### 1. 依存関係のインストール
 
 ```bash
 pnpm install
 ```
 
-### 2. データベースの起動
+#### 2. データベースの起動
 
 ```bash
-docker compose up -d
+docker compose up -d db
 ```
 
-### 3. 環境変数の設定
+#### 3. 環境変数の設定
 
 **apps/api/.env**:
 ```
 DATABASE_URL=postgres://devuser:devpass@localhost:5432/liffapp
 APP_JWT_SECRET=change-me
-LINE_CHANNEL_ID=xxxxxxxxxx
+LINE_CHANNEL_ID=2007919613
 ```
 
-**apps/liff-web/.env**:
+**apps/admin-web/.env**:
 ```
-VITE_LIFF_ID=xxxx-your-liff-id
-VITE_API_BASE=http://localhost:8787
-VITE_STORE_ID=00000000-0000-0000-0000-000000000000
+VITE_API_URL=http://localhost:8787
+VITE_STORE_ID=27ce78c0-5bc1-402c-b667-dc7b2985e0b9
+VITE_LIFF_ID=2007919613-YrjmyLL9
 ```
 
-### 4. データベースマイグレーション
+**apps/liff-demo/.env**:
+```
+VITE_LIFF_ID=2007919613-YrjmyLL9
+VITE_API_URL=http://localhost:8787
+VITE_STORE_ID=27ce78c0-5bc1-402c-b667-dc7b2985e0b9
+```
+
+#### 4. データベースマイグレーション
 
 ```bash
 cd apps/api
-npx drizzle-kit push
+pnpm drizzle-kit push:pg
 ```
 
-### 5. 開発サーバーの起動
+#### 5. 開発サーバーの起動
 
-APIサーバー:
 ```bash
-cd apps/api
+# すべてのサービスを起動（ルートディレクトリから）
 pnpm dev
-```
 
-LIFFアプリ:
-```bash
-cd apps/liff-web
-pnpm dev
-```
-
-ランディングページ:
-```bash
-cd apps/landing
-pnpm dev
-# http://localhost:3001 でアクセス
+# または個別に起動
+pnpm dev:api     # APIサーバー
+pnpm dev:admin   # 管理画面
+pnpm dev:liff    # LIFFデモ
+pnpm dev:landing # ランディングページ
 ```
 
 ## 次のステップ

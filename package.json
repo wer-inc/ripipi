@@ -1,6 +1,18 @@
 {
-  "name": "liff-reserve",
+  "name": "ripipi",
   "private": true,
   "packageManager": "pnpm@9.0.0",
-  "workspaces": ["apps/*", "packages/*"]
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:api": "cd apps/api && pnpm dev",
+    "dev:liff": "cd apps/liff-demo && pnpm dev",
+    "dev:landing": "cd apps/landing && pnpm dev",
+    "dev:admin": "cd apps/admin-web && pnpm dev",
+    "build": "turbo run build",
+    "test": "turbo run test"
+  },
+  "devDependencies": {
+    "turbo": "^2.1.0"
+  }
 }
