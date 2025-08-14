@@ -1,0 +1,125 @@
+# =============================================================================
+# DOCKER IGNORE FILE FOR RIPIPI RESERVATION SYSTEM
+# =============================================================================
+# This file specifies which files and directories should be excluded
+# from the Docker build context to optimize build performance and security.
+# =============================================================================
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Build outputs
+dist/
+build/
+coverage/
+.nyc_output/
+
+# Logs
+logs/
+*.log
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Runtime data
+.tmp/
+tmp/
+
+# Development files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Documentation
+README.md
+CHANGELOG.md
+CONTRIBUTING.md
+LICENSE
+docs/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+.circleci/
+azure-pipelines.yml
+
+# Testing
+.tap/
+test-results/
+junit.xml
+
+# Backup files
+*.backup
+*.bak
+*.tmp
+
+# Data directories
+data/
+backups/
+
+# Makefile
+Makefile
+
+# Editor files
+.editorconfig
+.prettierrc*
+.eslintrc*
+.eslintignore
+
+# TypeScript
+*.tsbuildinfo
+
+# Package manager lock files (keep package-lock.json for exact versions)
+yarn.lock
+pnpm-lock.yaml
+
+# Local configuration
+local.json
+config/local.json
+
+# Certificates and keys
+*.pem
+*.key
+*.crt
+*.cer
+*.p12
+*.pfx
+
+# Temporary files
+.cache/
+.parcel-cache/
+.next/
+.nuxt/
+.vuepress/dist/

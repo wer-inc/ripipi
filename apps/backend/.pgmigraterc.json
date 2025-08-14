@@ -1,0 +1,21 @@
+{
+  "database-url": {
+    "env": "DATABASE_URL"
+  },
+  "migrations-dir": "migrations",
+  "migrations-table": "pgmigrations",
+  "schema": "public",
+  "migration-file-language": "js",
+  "template-file-name": "template.js",
+  "log": true,
+  "verbose": true,
+  "check-order": true,
+  "create-schema": true,
+  "create-migrations-schema": false,
+  "single-transaction": true,
+  "lock": true,
+  "dry-run": false,
+  "fake": false,
+  "decamelize": false,
+  "timestamp": false
+}

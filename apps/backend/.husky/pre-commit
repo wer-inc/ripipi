@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Change to the backend directory before running lint-staged
+cd apps/backend
+
+# Run lint-staged for the backend app
+npx lint-staged

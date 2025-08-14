@@ -1,0 +1,134 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+dist/
+build/
+coverage/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Data directories (Docker volumes)
+data/
+backups/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+
+# Editor directories and files
+.idea/
+*.swp
+*.swo
+*~
+
+# VSCode - exclude user-specific settings but keep project settings
+.vscode/launch.json
+.vscode/tasks.json
+.vscode/settings.local.json
+.vscode/*.code-workspace
+
+# Testing
+.tap/
+test-results/
+junit.xml
+.nyc_output/
+
+# TypeScript
+*.tsbuildinfo
+
+# Temporary files
+.tmp/
+tmp/
+.cache/
+
+# Docker override files (keep main docker-compose.yml)
+docker-compose.override.yml
+
+# Local configuration
+local.json
+config/local.json
+
+# ESLint cache
+.eslintcache
+
+# Prettier cache
+.prettiercache
+
+# Husky
+.husky/_
+
+# MacOS
+.AppleDouble
+.LSOverride
+
+# Windows
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Atom
+.atom/
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# Vim
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+
+# Visual Studio
+.vs/
+
+# SSL certificates (if any)
+*.pem
+*.key
+*.crt
+*.cert
+
+# Application specific
+uploads/
+public/uploads/
+storage/
