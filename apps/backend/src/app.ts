@@ -27,6 +27,9 @@ import bookingRoutes from './routes/v1/bookings';
 import timeslotRoutes from './routes/v1/timeslots';
 import serviceRoutes from './routes/v1/services';
 import resourceRoutes from './routes/v1/resources';
+import webhookRoutes from './routes/v1/webhooks';
+import paymentRoutes from './routes/v1/payments';
+import paymentMethodRoutes from './routes/v1/payment-methods';
 
 /**
  * Build the Fastify application instance
@@ -97,6 +100,9 @@ export async function buildApp(opts: FastifyServerOptions = {}): Promise<Fastify
           { name: 'timeslots', description: 'Timeslot management endpoints' },
           { name: 'services', description: 'Service management endpoints' },
           { name: 'resources', description: 'Resource management endpoints' },
+          { name: 'webhooks', description: 'Webhook endpoints for external integrations' },
+          { name: 'payments', description: 'Payment processing endpoints' },
+          { name: 'payment-methods', description: 'Payment method management endpoints' },
         ],
         securityDefinitions: {
           Bearer: {
@@ -130,6 +136,9 @@ export async function buildApp(opts: FastifyServerOptions = {}): Promise<Fastify
   await app.register(timeslotRoutes, { prefix: '/v1' });
   await app.register(serviceRoutes, { prefix: '/v1' });
   await app.register(resourceRoutes, { prefix: '/v1' });
+  await app.register(webhookRoutes, { prefix: '/v1/webhooks' });
+  await app.register(paymentRoutes, { prefix: '/v1' });
+  await app.register(paymentMethodRoutes, { prefix: '/v1' });
 
   // Health check
   app.get('/health', async (request, reply) => {
