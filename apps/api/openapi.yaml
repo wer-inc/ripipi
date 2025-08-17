@@ -1,0 +1,604 @@
+openapi: 3.1.0
+info:
+  title: 予約管理API
+  version: 1.0.0
+  description: 美容室等の予約管理システムAPI
+  contact:
+    name: API Support
+    email: api@example.com
+  license:
+    name: MIT
+    
+servers:
+  - url: http://localhost:8787/v1
+    description: Development server
+  - url: https://api.example.com/v1
+    description: Production server
+
+tags:
+  - name: Authentication
+    description: 認証関連のエンドポイント
+  - name: Reservations
+    description: 予約管理
+  - name: Menus
+    description: メニュー管理
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      
+  schemas:
+    Error:
+      type: object
+      required:
+        - type
+        - title
+        - status
+      properties:
+        type:
+          type: string
+          example: /errors/VALIDATION_ERROR
+        title:
+          type: string
+          example: Validation failed
+        status:
+          type: integer
+          example: 400
+        detail:
+          type: string
+          example: The request body is invalid
+        instance:
+          type: string
+          example: /requests/abc123
+          
+    Reservation:
+      type: object
+      required:
+        - reservationId
+        - storeId
+        - memberId
+        - menuId
+        - startAt
+        - endAt
+        - status
+      properties:
+        reservationId:
+          type: string
+          format: uuid
+        storeId:
+          type: string
+          format: uuid
+        memberId:
+          type: string
+          format: uuid
+        menuId:
+          type: string
+          format: uuid
+        staffId:
+          type: string
+          format: uuid
+          nullable: true
+        startAt:
+          type: string
+          format: date-time
+        endAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [confirmed, cancelled, completed]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+          
+    Menu:
+      type: object
+      required:
+        - menuId
+        - storeId
+        - name
+        - durationMin
+        - price
+      properties:
+        menuId:
+          type: string
+          format: uuid
+        storeId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: カット
+        durationMin:
+          type: integer
+          example: 30
+        price:
+          type: integer
+          example: 3000
+          
+    PaginationInfo:
+      type: object
+      properties:
+        limit:
+          type: integer
+          example: 20
+        offset:
+          type: integer
+          example: 0
+        hasMore:
+          type: boolean
+          example: true
+        nextCursor:
+          type: string
+          format: uuid
+          nullable: true
+        total:
+          type: integer
+          nullable: true
+
+paths:
+  /auth/line:
+    post:
+      tags:
+        - Authentication
+      summary: LINE認証
+      description: LINE IDトークンを検証し、アプリケーションJWTを発行
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id_token
+                - store_id
+              properties:
+                id_token:
+                  type: string
+                  description: LINE IDトークン
+                store_id:
+                  type: string
+                  format: uuid
+                  description: 店舗ID
+      responses:
+        '200':
+          description: 認証成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: JWT
+        '400':
+          description: 不正なリクエスト
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 認証失敗
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                
+  /reservations:
+    post:
+      tags:
+        - Reservations
+      summary: 予約作成
+      description: 新規予約を作成し、通知ジョブを登録
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          description: 冪等性キー
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - store_id
+                - menu_id
+                - start_at
+              properties:
+                store_id:
+                  type: string
+                  format: uuid
+                menu_id:
+                  type: string
+                  format: uuid
+                staff_id:
+                  type: string
+                  format: uuid
+                start_at:
+                  type: string
+                  format: date-time
+                end_at:
+                  type: string
+                  format: date-time
+      responses:
+        '200':
+          description: 予約作成成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Reservation'
+        '400':
+          description: 不正なリクエスト
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 認証エラー
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: メンバーが見つからない
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: 予約時間重複
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: レート制限
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+            X-RateLimit-Reset:
+              schema:
+                type: string
+                format: date-time
+            Retry-After:
+              schema:
+                type: integer
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                
+    get:
+      tags:
+        - Reservations
+      summary: 予約一覧取得
+      description: 指定期間の予約一覧を取得（ページング対応）
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: store_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: cursor
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 予約一覧
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Reservation'
+                  pagination:
+                    $ref: '#/components/schemas/PaginationInfo'
+        '400':
+          description: 不正なリクエスト
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 認証エラー
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                
+  /reservations/{id}:
+    patch:
+      tags:
+        - Reservations
+      summary: 予約状態更新
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [confirmed, cancelled, completed]
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '400':
+          description: 不正なリクエスト
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 認証エラー
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 予約が見つからない
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                
+  /menus:
+    get:
+      tags:
+        - Menus
+      summary: メニュー一覧取得
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: store_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: メニュー一覧
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Menu'
+                  pagination:
+                    type: object
+                    properties:
+                      limit:
+                        type: integer
+                      offset:
+                        type: integer
+                      hasMore:
+                        type: boolean
+        '400':
+          description: 不正なリクエスト
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 認証エラー
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                
+    post:
+      tags:
+        - Menus
+      summary: メニュー作成
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - store_id
+                - name
+                - durationMin
+                - price
+              properties:
+                store_id:
+                  type: string
+                  format: uuid
+                name:
+                  type: string
+                durationMin:
+                  type: integer
+                price:
+                  type: integer
+      responses:
+        '200':
+          description: 作成成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Menu'
+        '400':
+          description: 不正なリクエスト
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 認証エラー
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                
+  /menus/{id}:
+    patch:
+      tags:
+        - Menus
+      summary: メニュー更新
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                durationMin:
+                  type: integer
+                price:
+                  type: integer
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '400':
+          description: 不正なリクエスト
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 認証エラー
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                
+    delete:
+      tags:
+        - Menus
+      summary: メニュー削除
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 削除成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '401':
+          description: 認証エラー
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: メニューが見つからない
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Error'

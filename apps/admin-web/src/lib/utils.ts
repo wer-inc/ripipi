@@ -1,5 +1,11 @@
+import { type ClassValue, clsx } from "clsx"
+import { twMerge } from "tailwind-merge"
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
 
 export function formatDate(date: Date | string) {
   return format(new Date(date), 'M月d日 HH:mm', { locale: ja });

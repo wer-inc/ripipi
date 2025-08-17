@@ -1,5 +1,5 @@
 import { db } from "./db";
-import ky from "ky"; // Messaging API呼び出し用（実際は公式SDKでもOK）
+// import ky from "ky"; // TODO: kyライブラリを追加後にコメント解除
 import cron from "node-cron";
 
 cron.schedule("* * * * *", async () => {

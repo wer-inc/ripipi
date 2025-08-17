@@ -4,6 +4,8 @@ import { db, eq, and, gte, lt } from "./db";
 import { reservations, members, notificationJobs, menus } from "./db/schema";
 import { z } from "zod";
 import { createRemoteJWKSet, jwtVerify, SignJWT } from "jose";
+import { rateLimitMiddleware } from "./lib/rate-limit";
+import { ApiError, Errors, sendErrorResponse } from "./lib/errors";
 
 const app = Fastify({ logger: true });
 
@@ -41,31 +43,35 @@ app.post("/auth/line", async (req, reply) => {
   return reply.send({ token });
 });
 
-// 認証フック（管理画面からのアクセスは認証をスキップ）
+// レート制限フック
+app.addHook("onRequest", rateLimitMiddleware);
+
+// 認証フック - セキュリティ強化版
 app.addHook("onRequest", async (req, reply) => {
   if (req.routeOptions?.url?.startsWith("/auth")) return;
   if (req.routeOptions?.url === "/health") return;
   
-  // 管理画面からのアクセスの場合は認証をスキップ（開発環境のみ）
-  const origin = req.headers.origin || req.headers.referer || "";
-  if (origin.includes("localhost:5174")) {
-    (req as any).auth = { 
-      sub: "admin", 
-      store_id: process.env.STORE_ID || "27ce78c0-5bc1-402c-b667-dc7b2985e0b9" 
-    };
-    return;
-  }
-  
+  // 認証バイパスを削除 - 全環境で認証を必須化
   const hdr = req.headers.authorization || "";
   const token = hdr.startsWith("Bearer ") ? hdr.slice(7) : null;
-  if (!token) return reply.code(401).send();
+  if (!token) {
+    return sendErrorResponse(reply, Errors.unauthorized());
+  }
+  
   try {
-    const { payload } = await jwtVerify(token, new TextEncoder().encode(process.env.APP_JWT_SECRET!), {
-      issuer: "your-app", audience: "liff", algorithms: ["HS256"], // 署名と発行者は合わせる
-    }).catch(() => jwtVerify(token, new TextEncoder().encode(process.env.APP_JWT_SECRET!)));
+    // 厳密なJWT検証 - iss/audの不一致は拒否
+    const { payload } = await jwtVerify(
+      token, 
+      new TextEncoder().encode(process.env.APP_JWT_SECRET!), 
+      {
+        issuer: "your-app",
+        audience: "liff",
+        algorithms: ["HS256"]
+      }
+    );
     (req as any).auth = payload;
-  } catch {
-    return reply.code(401).send();
+  } catch (error) {
+    return sendErrorResponse(reply, Errors.invalidToken());
   }
 });
 
@@ -94,7 +100,7 @@ app.post("/reservations", async (req, reply) => {
       .limit(1);
     
     if (!member[0]) {
-      return reply.status(404).send({ error: "Member not found" });
+      return sendErrorResponse(reply, Errors.notFound('Member'));
     }
 
     // 予約を作成
@@ -133,8 +139,10 @@ app.post("/reservations", async (req, reply) => {
     
     return reply.send(r);
   } catch (e: any) {
-    if (String(e?.message).includes("no_overlap")) return reply.code(409).send({ error: "time_overlap" });
-    throw e;
+    if (String(e?.message).includes("no_overlap")) {
+      return sendErrorResponse(reply, Errors.conflict('予約時間が重複しています', { error: 'time_overlap' }));
+    }
+    return sendErrorResponse(reply, Errors.internal('予約の作成に失敗しました'));
   }
 });
 
@@ -145,16 +153,35 @@ app.get("/reservations", async (req, reply) => {
     to: z.string()
   }).parse(req.query);
   
-  const rows = await db.select()
-    .from(reservations)
-    .where(and(
-      eq(reservations.storeId, q.store_id),
-      gte(reservations.startAt, new Date(q.from)),
-      lt(reservations.startAt, new Date(q.to))
-    ))
-    .orderBy(reservations.startAt);
+  const auth = (req as any).auth;
   
-  return reply.send(rows);
+  // 認可チェック: ユーザーは自分の予約のみ、管理者は店舗の全予約を取得可能
+  if (auth.role === "admin" && auth.store_id === q.store_id) {
+    // 管理者: 指定店舗の全予約を取得
+    const rows = await db.select()
+      .from(reservations)
+      .where(and(
+        eq(reservations.storeId, q.store_id),
+        gte(reservations.startAt, new Date(q.from)),
+        lt(reservations.startAt, new Date(q.to))
+      ))
+      .orderBy(reservations.startAt);
+    
+    return reply.send(rows);
+  } else {
+    // 一般ユーザー: 自分の予約のみ取得
+    const rows = await db.select()
+      .from(reservations)
+      .where(and(
+        eq(reservations.memberId, auth.sub),
+        eq(reservations.storeId, q.store_id),
+        gte(reservations.startAt, new Date(q.from)),
+        lt(reservations.startAt, new Date(q.to))
+      ))
+      .orderBy(reservations.startAt);
+    
+    return reply.send(rows);
+  }
 });
 
 // メニュー一覧取得
@@ -200,13 +227,17 @@ app.post("/menus", async (req, reply) => {
     price: z.number()
   }).parse(req.body);
   
-  const result = await db.execute(/*sql*/`
-    insert into menus (store_id, name, duration_min, price)
-    values ('${body.store_id}', '${body.name}', ${body.durationMin}, ${body.price})
-    returning menu_id, store_id, name, duration_min, price
-  `);
+  // SQLインジェクション対策: パラメータ化クエリを使用
+  const [newMenu] = await db.insert(menus)
+    .values({
+      storeId: body.store_id,
+      name: body.name,
+      durationMin: body.durationMin,
+      price: body.price
+    })
+    .returning();
   
-  return reply.send(result[0]);
+  return reply.send(newMenu);
 });
 
 // メニュー更新
